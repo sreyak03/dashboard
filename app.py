@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from transformers import pipeline
 import torch
 
@@ -8,9 +9,9 @@ import torch
 # Page Setup
 # -------------------------------
 st.set_page_config(page_title="AI Dashboard Assistant", layout="wide")
-st.title("📊 AI Dashboard Assistant (Offline + Generative)")
+st.title("📊 AI Dashboard Assistant (Offline + Generative + Charts)")
 
-st.info("💡 Upload a dataset and choose between Rule-based or Generative AI mode for insights.")
+st.info("💡 Upload a dataset, view automatic charts, and get AI-generated insights — fully offline.")
 
 # -------------------------------
 # Load Local LLM (Phi-2)
@@ -76,9 +77,50 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.success("✅ File uploaded successfully!")
 
+    # Dataset preview
     st.subheader("📄 Dataset Preview")
     st.dataframe(df.head())
 
+    # Column analysis layout
+    st.subheader("📊 Basic Charts and Visual Analysis")
+
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = df.select_dtypes(exclude=[np.number]).columns.tolist()
+
+    col1, col2 = st.columns(2)
+
+    # -------------------------------
+    # Numeric column histograms
+    # -------------------------------
+    with col1:
+        if numeric_cols:
+            selected_num = st.selectbox("Select a numeric column for histogram:", numeric_cols)
+            fig, ax = plt.subplots(figsize=(5, 3))
+            ax.hist(df[selected_num].dropna(), bins=20, color="#1f77b4", alpha=0.8)
+            ax.set_title(f"Distribution of {selected_num}")
+            st.pyplot(fig)
+        else:
+            st.info("No numeric columns available for histograms.")
+
+    # -------------------------------
+    # Categorical column pie charts
+    # -------------------------------
+    with col2:
+        if categorical_cols:
+            selected_cat = st.selectbox("Select a categorical column for pie chart:", categorical_cols)
+            fig, ax = plt.subplots(figsize=(4, 4))
+            df[selected_cat].value_counts().head(6).plot.pie(
+                autopct="%1.1f%%", ax=ax, startangle=90, colors=plt.cm.Paired.colors
+            )
+            ax.set_ylabel("")
+            ax.set_title(f"Distribution of {selected_cat}")
+            st.pyplot(fig)
+        else:
+            st.info("No categorical columns available for pie charts.")
+
+    # -------------------------------
+    # AI Insights Mode
+    # -------------------------------
     st.subheader("🧠 AI Insights Mode")
     mode = st.radio(
         "Choose AI mode:",
@@ -100,11 +142,12 @@ if uploaded_file is not None:
     # -------------------------------
     elif mode == "Generative (local LLM - Phi-2)":
         with st.spinner("Generating insights using Phi-2..."):
-            # Optionally ground the model with rule-based facts
             base_insights = generate_rule_based_insights(df)
             prompt = f"""
-            You are an expert AI data analyst.
-            Analyze the following dataset and summarize insights naturally.
+            You are an intelligent data analysis assistant.
+            Analyze the dataset, interpret the charts (histogram of {numeric_cols[0] if numeric_cols else 'N/A'} 
+            and pie chart of {categorical_cols[0] if categorical_cols else 'N/A'}), 
+            and describe the key trends or relationships you observe.
 
             Dataset shape: {df.shape}
             Columns: {list(df.columns)}
@@ -124,4 +167,3 @@ if uploaded_file is not None:
 
 else:
     st.warning("⬆️ Please upload a CSV file to get started.")
-
