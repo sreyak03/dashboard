@@ -18,19 +18,19 @@ st.info("💡 Upload a dataset, view automatic charts, and get AI-generated insi
 # -------------------------------
 @st.cache_resource
 def load_local_llm():
-    """
-    Always use TinyLlama (lightweight model) for Streamlit Cloud deployment.
-    """
-    model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
-    st.info("🚀 Loading TinyLlama (lightweight local model)...")
-    generator = pipeline(
-        "text-generation",
-        model=model_name,
-        dtype=torch.float32,
-        device_map="auto"
-    )
-    st.success("✅ TinyLlama loaded successfully!")
-    return generator
+    try:
+        st.info("🚀 Loading lightweight TinyLlama model...")
+        generator = pipeline(
+            "text-generation",
+            model="TheBloke/TinyLlama-70M-GPTQ",
+            dtype=torch.float32,
+            device_map="auto"
+        )
+        st.success("✅ Model loaded successfully!")
+        return generator
+    except Exception as e:
+        st.warning(f"⚠️ Failed to load model: {e}")
+        return None
 
 local_generator = load_local_llm()
 
