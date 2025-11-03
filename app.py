@@ -22,7 +22,7 @@ def load_local_llm():
         st.info("🚀 Loading lightweight TinyLlama model...")
         generator = pipeline(
             "text-generation",
-            model="TheBloke/TinyLlama-70M-GPTQ",
+            model_name = "TheBloke/TinyLlama‑1.1B‑Chat‑v1.0‑GPTQ",
             dtype=torch.float32,
             device_map="auto"
         )
