@@ -18,14 +18,37 @@ st.info("💡 Upload a dataset, view automatic charts, and get AI-generated insi
 # -------------------------------
 @st.cache_resource
 def load_local_llm():
-    model_name = "microsoft/phi-2"
-    generator = pipeline(
-        "text-generation",
-        model=model_name,
-        torch_dtype=torch.float32,
-        device_map="auto"
-    )
-    return generator
+    """
+    Try loading Phi-2 first (better text quality).
+    If system runs out of memory or fails, fallback to TinyLlama automatically.
+    """
+    preferred_model = "microsoft/phi-2"
+    fallback_model = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+
+    try:
+        st.info("🚀 Loading local LLM: Phi-2 (may take 2–5 minutes on first run)...")
+        generator = pipeline(
+            "text-generation",
+            model=preferred_model,
+            dtype=torch.float32,
+            device_map="auto"
+        )
+        st.success("✅ Loaded Phi-2 successfully!")
+        return generator
+    except Exception as e:
+        st.warning(f"⚠️ Phi-2 model failed to load ({e}). Falling back to TinyLlama...")
+        try:
+            generator = pipeline(
+                "text-generation",
+                model=fallback_model,
+                dtype=torch.float32,
+                device_map="auto"
+            )
+            st.success("✅ Loaded TinyLlama successfully! (Lightweight fallback model)")
+            return generator
+        except Exception as e2:
+            st.error(f"❌ Could not load any local LLM. Reason: {e2}")
+            return None
 
 local_generator = load_local_llm()
 
