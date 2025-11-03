@@ -20,20 +20,23 @@ from transformers import pipeline
 import torch
 
 @st.cache_resource
-def load_llm():
+def load_local_llm():
+    model_name = "TinyLlama/TinyLlama‑1.1B‑Chat‑v1.0"  # valid model id
     try:
-        st.info("🚀 Loading lightweight model...")
-        return pipeline(
+        st.info(f"🚀 Loading model: {model_name} (may take a minute)...")
+        generator = pipeline(
             "text-generation",
-            model="TheBloke/TinyLlama-1B-GGUF",  # < 1B params
-            device_map={"": "cpu"},  # CPU only for Streamlit Cloud
-            torch_dtype=torch.float32
+            model=model_name,
+            dtype=torch.float32,
+            device_map="auto"    # if no GPU, it uses CPU
         )
+        st.success("✅ Model loaded successfully!")
+        return generator
     except Exception as e:
-        st.warning(f"⚠️ Could not load model: {e}")
+        st.warning(f"⚠️ Could not load model {model_name}: {e}")
         return None
 
-local_generator = load_llm()
+local_generator = load_local_llm()
 
 
 # -------------------------------
