@@ -16,23 +16,25 @@ st.info("💡 Upload a dataset, view automatic charts, and get AI-generated insi
 # -------------------------------
 # Load Local LLM (Phi-2)
 # -------------------------------
+from transformers import pipeline
+import torch
+
 @st.cache_resource
-def load_local_llm():
+def load_llm():
     try:
-        st.info("🚀 Loading lightweight TinyLlama model...")
-        generator = pipeline(
+        st.info("🚀 Loading lightweight model...")
+        return pipeline(
             "text-generation",
-            model_name = "TheBloke/TinyLlama‑1.1B‑Chat‑v1.0‑GPTQ",
-            dtype=torch.float32,
-            device_map="auto"
+            model="TheBloke/TinyLlama-1B-GGUF",  # < 1B params
+            device_map={"": "cpu"},  # CPU only for Streamlit Cloud
+            torch_dtype=torch.float32
         )
-        st.success("✅ Model loaded successfully!")
-        return generator
     except Exception as e:
-        st.warning(f"⚠️ Failed to load model: {e}")
+        st.warning(f"⚠️ Could not load model: {e}")
         return None
 
-local_generator = load_local_llm()
+local_generator = load_llm()
+
 
 # -------------------------------
 # Utility: Generate Rule-Based Insights
