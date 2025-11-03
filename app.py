@@ -26,7 +26,7 @@ def load_local_llm():
     generator = pipeline(
         "text-generation",
         model=model_name,
-        torch_dtype=torch.float32,
+        dtype=torch.float32,
         device_map="auto"
     )
     st.success("✅ TinyLlama loaded successfully!")
