@@ -38,24 +38,7 @@ def load_local_llm():
 
 local_generator = load_local_llm()
 
-...
 
-elif mode == "Generative (local LLM - Phi-2)" or mode == "Generative Insights":
-    if local_generator is None:
-        st.error("❌ Generative Mode not available in this environment. Please run locally.")
-    else:
-        with st.spinner("Generating smart insights..."):
-            base_insights = generate_rule_based_insights(df)
-            prompt = (
-                "Analyze this dataset and describe key insights:\n\n" +
-                "\n".join(base_insights) +
-                "\n\nSample Data:\n" +
-                df.head().to_string()
-            )
-            result = local_generator(prompt, max_new_tokens=200)
-            text_output = result[0]["generated_text"]
-            st.markdown("### 🤖 Generated Insights")
-            st.write(text_output)
 
 
 # -------------------------------
@@ -169,30 +152,21 @@ if uploaded_file is not None:
     # -------------------------------
     # Generative Mode (Local LLM)
     # -------------------------------
-    elif mode == "Generative (local LLM - Phi-2)":
-        with st.spinner("Generating insights using Phi-2..."):
+    elif mode == "Generative (local LLM - Phi-2)" or mode == "Generative Insights":
+    if local_generator is None:
+        st.error("❌ Generative Mode not available in this environment. Please run locally.")
+    else:
+        with st.spinner("Generating smart insights..."):
             base_insights = generate_rule_based_insights(df)
-            prompt = f"""
-            You are an intelligent data analysis assistant.
-            Analyze the dataset, interpret the charts (histogram of {numeric_cols[0] if numeric_cols else 'N/A'} 
-            and pie chart of {categorical_cols[0] if categorical_cols else 'N/A'}), 
-            and describe the key trends or relationships you observe.
-
-            Dataset shape: {df.shape}
-            Columns: {list(df.columns)}
-
-            Quick facts:
-            {chr(10).join(base_insights)}
-
-            Sample data:
-            {df.head(5).to_string(index=False)}
-            """
-
-            result = local_generator(prompt, max_new_tokens=300, temperature=0.7)
-            text_output = result[0]['generated_text']
-
-            st.markdown("### 🤖 Generated Insights (Phi-2)")
+            prompt = (
+                "Analyze this dataset and describe key insights:\n\n" +
+                "\n".join(base_insights) +
+                "\n\nSample Data:\n" +
+                df.head().to_string()
+            )
+            result = local_generator(prompt, max_new_tokens=200)
+            text_output = result[0]["generated_text"]
+            st.markdown("### 🤖 Generated Insights")
             st.write(text_output)
-
 else:
     st.warning("⬆️ Please upload a CSV file to get started.")
