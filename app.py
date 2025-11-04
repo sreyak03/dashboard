@@ -21,7 +21,7 @@ import torch
 
 @st.cache_resource
 def load_local_llm():
-    model_name = "TinyLlama/TinyLlama‑1.1B‑Chat‑v1.0"  # valid model id
+    model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"  # valid model id
     try:
         st.info(f"🚀 Loading model: {model_name} (may take a minute)...")
         generator = pipeline(
