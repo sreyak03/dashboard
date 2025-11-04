@@ -21,22 +21,41 @@ import torch
 
 @st.cache_resource
 def load_local_llm():
-    model_name = "TinyLlama/TinyLlama-1.1B-Chat-v1.0"  # valid model id
+    model_name = "distilgpt2"  # ✅ very small, safe for Streamlit Cloud
+
     try:
-        st.info(f"🚀 Loading model: {model_name} (may take a minute)...")
+        st.info(f"🚀 Loading model: {model_name} ...")
         generator = pipeline(
             "text-generation",
             model=model_name,
-            dtype=torch.float32,
-            device_map="auto"    # if no GPU, it uses CPU
+            device_map="auto"
         )
         st.success("✅ Model loaded successfully!")
         return generator
     except Exception as e:
-        st.warning(f"⚠️ Could not load model {model_name}: {e}")
+        st.warning(f"⚠️ Generative AI disabled: {e}")
         return None
 
 local_generator = load_local_llm()
+
+...
+
+elif mode == "Generative (local LLM - Phi-2)" or mode == "Generative Insights":
+    if local_generator is None:
+        st.error("❌ Generative Mode not available in this environment. Please run locally.")
+    else:
+        with st.spinner("Generating smart insights..."):
+            base_insights = generate_rule_based_insights(df)
+            prompt = (
+                "Analyze this dataset and describe key insights:\n\n" +
+                "\n".join(base_insights) +
+                "\n\nSample Data:\n" +
+                df.head().to_string()
+            )
+            result = local_generator(prompt, max_new_tokens=200)
+            text_output = result[0]["generated_text"]
+            st.markdown("### 🤖 Generated Insights")
+            st.write(text_output)
 
 
 # -------------------------------
