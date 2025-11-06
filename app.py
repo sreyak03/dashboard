@@ -192,3 +192,10 @@ elif "Generative" in mode:
 
 else:
     st.warning("⬆️ Please upload a CSV file to get started.")
+
+# --- Safety fallback if mode not set ---
+try:
+    mode
+except NameError:
+    mode = None
+
