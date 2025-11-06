@@ -152,21 +152,43 @@ if uploaded_file is not None:
     # -------------------------------
     # Generative Mode (Local LLM)
     # -------------------------------
-    elif mode == "Generative (local LLM - Phi-2)" or mode == "Generative Insights":
-        if local_generator is None:
-            st.error("❌ Generative Mode not available in this environment. Please run locally.")
-        else:
-            with st.spinner("Generating smart insights..."):
+    # -------------------------------
+# Generative Mode (Local LLM)
+# -------------------------------
+elif "Generative" in mode:
+    if local_generator is None:
+        st.error("❌ Generative Mode not available in this environment. Please run locally.")
+    else:
+        with st.spinner("Generating smart insights..."):
+            try:
                 base_insights = generate_rule_based_insights(df)
                 prompt = (
-                "Analyze this dataset and describe key insights:\n\n" +
-                "\n".join(base_insights) +
-                "\n\nSample Data:\n" +
-                    df.head().to_string()
-            )
-            result = local_generator(prompt, max_new_tokens=200)
-            text_output = result[0]["generated_text"]
-            st.markdown("### 🤖 Generated Insights")
-            st.write(text_output)
+                    "Summarize key patterns and relationships in this dataset:\n\n"
+                    + "\n".join(base_insights)
+                    + "\n\nHere’s a small sample of the data:\n"
+                    + df.head(3).to_string()
+                )
+
+                # 🧠 Truncate overly long prompts (prevent IndexError)
+                prompt = prompt[:800]
+
+                # 🔧 Generate text safely with padding fix
+                result = local_generator(
+                    prompt,
+                    max_new_tokens=120,
+                    pad_token_id=50256,  # GPT-2 compatible
+                    temperature=0.7,
+                    do_sample=True,
+                )
+
+                text_output = result[0]["generated_text"]
+                st.markdown("### 🤖 Generated Insights")
+                st.write(text_output)
+
+            except IndexError:
+                st.error("⚠️ Generation failed: prompt too long or model input overflow.")
+            except Exception as e:
+                st.error(f"⚠️ Something went wrong: {e}")
+
 else:
     st.warning("⬆️ Please upload a CSV file to get started.")
