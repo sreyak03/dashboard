@@ -1,11 +1,11 @@
 streamlit
 pandas
 numpy
+matplotlib
 plotly
+seaborn
 scikit-learn
 torch
 transformers
 accelerate
-matplotlib
-
 
