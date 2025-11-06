@@ -153,16 +153,16 @@ if uploaded_file is not None:
     # Generative Mode (Local LLM)
     # -------------------------------
     elif mode == "Generative (local LLM - Phi-2)" or mode == "Generative Insights":
-    if local_generator is None:
-        st.error("❌ Generative Mode not available in this environment. Please run locally.")
-    else:
-        with st.spinner("Generating smart insights..."):
-            base_insights = generate_rule_based_insights(df)
-            prompt = (
+        if local_generator is None:
+            st.error("❌ Generative Mode not available in this environment. Please run locally.")
+        else:
+            with st.spinner("Generating smart insights..."):
+                base_insights = generate_rule_based_insights(df)
+                prompt = (
                 "Analyze this dataset and describe key insights:\n\n" +
                 "\n".join(base_insights) +
                 "\n\nSample Data:\n" +
-                df.head().to_string()
+                    df.head().to_string()
             )
             result = local_generator(prompt, max_new_tokens=200)
             text_output = result[0]["generated_text"]
