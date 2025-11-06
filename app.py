@@ -188,9 +188,6 @@ if uploaded_file is not None:
                 st.error(f"⚠️ Something went wrong: {e}")
 
 
-# --- Safety fallback if mode not set ---
-try:
-    mode
-except NameError:
-    mode = None
 
+
+else: st.warning("⬆️ Please upload a CSV file to get started.") this is the code
