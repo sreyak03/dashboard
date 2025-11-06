@@ -10,19 +10,14 @@ import torch
 # -------------------------------
 st.set_page_config(page_title="AI Dashboard Assistant", layout="wide")
 st.title("📊 AI Dashboard Assistant (Offline + Generative + Charts)")
-
 st.info("💡 Upload a dataset, view automatic charts, and get AI-generated insights — fully offline.")
 
 # -------------------------------
-# Load Local LLM (Phi-2)
+# Load Local LLM (DistilGPT-2 for small CPU use)
 # -------------------------------
-from transformers import pipeline
-import torch
-
 @st.cache_resource
 def load_local_llm():
-    model_name = "distilgpt2"  # ✅ very small, safe for Streamlit Cloud
-
+    model_name = "distilgpt2"  # small model safe for CPU
     try:
         st.info(f"🚀 Loading model: {model_name} ...")
         generator = pipeline(
@@ -37,9 +32,6 @@ def load_local_llm():
         return None
 
 local_generator = load_local_llm()
-
-
-
 
 # -------------------------------
 # Utility: Generate Rule-Based Insights
@@ -136,7 +128,7 @@ if uploaded_file is not None:
     st.subheader("🧠 AI Insights Mode")
     mode = st.radio(
         "Choose AI mode:",
-        ["Rule-based (fast, offline)", "Generative (local LLM - Phi-2)"]
+        ["Rule-based (fast, offline)", "Generative (local LLM - DistilGPT2)"]
     )
 
     # -------------------------------
@@ -149,9 +141,9 @@ if uploaded_file is not None:
             for i, ins in enumerate(insights, 1):
                 st.markdown(f"**{i}.** {ins}")
 
-# -------------------------------
-# Generative Mode (Local LLM)
-# -------------------------------
+    # -------------------------------
+    # Generative Mode (Local LLM)
+    # -------------------------------
     elif "Generative" in mode:
         if local_generator is None:
             st.error("❌ Generative Mode not available in this environment. Please run locally.")
@@ -160,34 +152,32 @@ if uploaded_file is not None:
                 try:
                     base_insights = generate_rule_based_insights(df)
                     prompt = (
-                    "Summarize key patterns and relationships in this dataset:\n\n"
-                    + "\n".join(base_insights)
-                    + "\n\nHere’s a small sample of the data:\n"
-                    + df.head(3).to_string()
-                )
+                        "Summarize key patterns and relationships in this dataset:\n\n"
+                        + "\n".join(base_insights)
+                        + "\n\nHere’s a small sample of the data:\n"
+                        + df.head(3).to_string()
+                    )
 
-                # 🧠 Truncate overly long prompts (prevent IndexError)
-                prompt = prompt[:800]
+                    # 🧠 Truncate overly long prompts (prevent overflow)
+                    prompt = prompt[:800]
 
-                # 🔧 Generate text safely with padding fix
-                result = local_generator(
-                    prompt,
-                    max_new_tokens=120,
-                    pad_token_id=50256,  # GPT-2 compatible
-                    temperature=0.7,
-                    do_sample=True,
-                )
+                    # 🔧 Generate text safely
+                    result = local_generator(
+                        prompt,
+                        max_new_tokens=120,
+                        pad_token_id=50256,  # GPT-2 compatible
+                        temperature=0.7,
+                        do_sample=True,
+                    )
 
-                text_output = result[0]["generated_text"]
-                st.markdown("### 🤖 Generated Insights")
-                st.write(text_output)
+                    text_output = result[0]["generated_text"]
+                    st.markdown("### 🤖 Generated Insights")
+                    st.write(text_output)
 
-            except IndexError:
-                st.error("⚠️ Generation failed: prompt too long or model input overflow.")
-            except Exception as e:
-                st.error(f"⚠️ Something went wrong: {e}")
+                except IndexError:
+                    st.error("⚠️ Generation failed: prompt too long or model input overflow.")
+                except Exception as e:
+                    st.error(f"⚠️ Something went wrong: {e}")
 
-
-
-
-else: st.warning("⬆️ Please upload a CSV file to get started.") this is the code
+else:
+    st.warning("⬆️ Please upload a CSV file to get started.")
