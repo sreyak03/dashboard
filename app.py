@@ -149,20 +149,17 @@ if uploaded_file is not None:
             for i, ins in enumerate(insights, 1):
                 st.markdown(f"**{i}.** {ins}")
 
-    # -------------------------------
-    # Generative Mode (Local LLM)
-    # -------------------------------
-    # -------------------------------
+# -------------------------------
 # Generative Mode (Local LLM)
 # -------------------------------
-elif "Generative" in mode:
-    if local_generator is None:
-        st.error("❌ Generative Mode not available in this environment. Please run locally.")
-    else:
-        with st.spinner("Generating smart insights..."):
-            try:
-                base_insights = generate_rule_based_insights(df)
-                prompt = (
+    elif "Generative" in mode:
+        if local_generator is None:
+            st.error("❌ Generative Mode not available in this environment. Please run locally.")
+        else:
+            with st.spinner("Generating smart insights..."):
+                try:
+                    base_insights = generate_rule_based_insights(df)
+                    prompt = (
                     "Summarize key patterns and relationships in this dataset:\n\n"
                     + "\n".join(base_insights)
                     + "\n\nHere’s a small sample of the data:\n"
@@ -190,8 +187,6 @@ elif "Generative" in mode:
             except Exception as e:
                 st.error(f"⚠️ Something went wrong: {e}")
 
-else:
-    st.warning("⬆️ Please upload a CSV file to get started.")
 
 # --- Safety fallback if mode not set ---
 try:
